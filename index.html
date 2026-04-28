@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EJonesLoans · Content Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --obsidian: #0D0F12;
+    --slate:    #1A1D24;
+    --charcoal: #242830;
+    --gold:     #C8940F;
+    --gold-lt:  #F0C94D;
+    --teal:     #0D7377;
+    --copper:   #B87333;
+    --text:     #E8E9EC;
+    --text-dim: #8A8E97;
+    --line:     #2A2E37;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: var(--obsidian); color: var(--text); font-family: 'Outfit', sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(13,15,18,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 32px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-mark {
+    width: 38px; height: 38px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--copper) 100%);
+    display: grid; place-items: center;
+    font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--obsidian);
+    box-shadow: 0 0 0 1px rgba(200,148,15,.4), 0 6px 18px rgba(200,148,15,.18);
+  }
+  .brand-text { line-height: 1.1; }
+  .brand-text .name { font-family: 'DM Serif Display', serif; font-size: 22px; letter-spacing: .3px; }
+  .brand-text .sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gold); text-transform: uppercase; letter-spacing: 1.6px; margin-top: 2px; }
+
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .search {
+    background: var(--slate); border: 1px solid var(--line); color: var(--text);
+    padding: 9px 14px; border-radius: 8px; font-family: 'Outfit'; font-size: 14px; min-width: 220px;
+    outline: none; transition: border-color .2s;
+  }
+  .search:focus { border-color: var(--gold); }
+  .search::placeholder { color: var(--text-dim); }
+
+  .filter-row { padding: 14px 32px; border-bottom: 1px solid var(--line); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; background: var(--slate); }
+  .filter-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.4px; margin-right: 8px; }
+  .chip {
+    padding: 6px 12px; border-radius: 999px; cursor: pointer;
+    font-size: 12px; font-weight: 500;
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--line); transition: all .15s;
+    user-select: none;
+  }
+  .chip:hover { color: var(--text); border-color: var(--text-dim); }
+  .chip.active { background: var(--gold); color: var(--obsidian); border-color: var(--gold); }
+  .chip.cluster-authority.active { background: var(--gold); border-color: var(--gold); color: var(--obsidian); }
+  .chip.cluster-kitchen.active   { background: var(--copper); border-color: var(--copper); color: var(--obsidian); }
+  .chip.cluster-peer.active      { background: var(--teal); border-color: var(--teal); color: var(--text); }
+  .chip.cluster-screen.active    { background: var(--gold-lt); border-color: var(--gold-lt); color: var(--obsidian); }
+
+  /* Stats strip */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--line); background: var(--obsidian);
+  }
+  .stat { padding: 18px 24px; border-right: 1px solid var(--line); }
+  .stat:last-child { border-right: none; }
+  .stat .num { font-family: 'JetBrains Mono', monospace; font-size: 28px; color: var(--gold); font-weight: 600; }
+  .stat .lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 4px; }
+
+  /* Standing setup banner */
+  .standing {
+    margin: 24px 32px; padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(13,115,119,.08) 0%, rgba(200,148,15,.06) 100%);
+    border: 1px solid var(--line); border-radius: 10px;
+    position: relative; overflow: hidden;
+  }
+  .standing::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold); }
+  .standing h3 { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 14px; color: var(--gold-lt); }
+  .standing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+  .standing-grid .item .k { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--gold); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 4px; }
+  .standing-grid .item .v { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+  /* Card grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 18px; padding: 8px 32px 64px; }
+
+  .card {
+    background: var(--slate); border: 1px solid var(--line); border-radius: 12px;
+    padding: 0; overflow: hidden;
+    transition: transform .18s, border-color .18s, box-shadow .18s;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .card:hover { transform: translateY(-3px); border-color: rgba(200,148,15,.4); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+
+  .card-stripe { height: 4px; }
+  .card[data-cluster="authority"] .card-stripe { background: var(--gold); }
+  .card[data-cluster="kitchen"]   .card-stripe { background: var(--copper); }
+  .card[data-cluster="peer"]      .card-stripe { background: var(--teal); }
+  .card[data-cluster="screen"]    .card-stripe { background: var(--gold-lt); }
+
+  .card-head {
+    padding: 16px 18px 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .card-id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--gold); letter-spacing: 1px; }
+  .card-pillar { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.4px; margin-top: 4px; }
+  .cluster-badge {
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px;
+    padding: 4px 9px; border-radius: 999px;
+    border: 1px solid currentColor;
+  }
+  .card[data-cluster="authority"] .cluster-badge { color: var(--gold); }
+  .card[data-cluster="kitchen"]   .cluster-badge { color: var(--copper); }
+  .card[data-cluster="peer"]      .cluster-badge { color: var(--teal); }
+  .card[data-cluster="screen"]    .cluster-badge { color: var(--gold-lt); }
+
+  .hook {
+    padding: 16px 18px; background: var(--charcoal);
+    border-bottom: 1px solid var(--line);
+  }
+  .hook-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 8px; }
+  .hook-text { font-family: 'DM Serif Display', serif; font-size: 17px; line-height: 1.4; color: var(--text); }
+
+  .card-body { padding: 14px 18px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+
+  .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .meta {
+    background: var(--obsidian); border: 1px solid var(--line); border-radius: 6px;
+    padding: 9px 11px;
+  }
+  .meta .k { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--gold); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px; }
+  .meta .v { font-size: 12px; color: var(--text); line-height: 1.4; }
+
+  .script-block {
+    background: var(--obsidian); border: 1px solid var(--line); border-radius: 6px;
+    padding: 12px; margin-top: 4px;
+  }
+  .script-block .k { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--gold); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; }
+  .script-block .v { font-size: 12.5px; color: var(--text); line-height: 1.6; white-space: pre-line; }
+
+  .cta-bar {
+    padding: 12px 18px; background: linear-gradient(90deg, rgba(200,148,15,.1) 0%, transparent 100%);
+    border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .cta-text { font-size: 12px; color: var(--gold-lt); font-weight: 500; }
+  .cta-keyword { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 8px; background: var(--gold); color: var(--obsidian); border-radius: 4px; font-weight: 600; }
+
+  /* Workflow footer */
+  .workflow {
+    margin: 32px; padding: 28px;
+    background: var(--slate); border: 1px solid var(--line); border-radius: 12px;
+  }
+  .workflow h3 { font-family: 'DM Serif Display', serif; font-size: 22px; margin-bottom: 18px; color: var(--gold-lt); }
+  .workflow-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .workflow-step {
+    padding: 18px; background: var(--obsidian); border: 1px solid var(--line); border-radius: 8px;
+    border-left: 3px solid var(--gold);
+  }
+  .workflow-step .num { font-family: 'JetBrains Mono', monospace; color: var(--gold); font-size: 11px; letter-spacing: 1.4px; margin-bottom: 6px; text-transform: uppercase; }
+  .workflow-step .ttl { font-family: 'DM Serif Display', serif; font-size: 16px; margin-bottom: 8px; }
+  .workflow-step .desc { font-size: 13px; color: var(--text-dim); line-height: 1.55; }
+
+  footer { padding: 24px 32px 48px; text-align: center; color: var(--text-dim); font-size: 11px; font-family: 'JetBrains Mono', monospace; letter-spacing: 1px; }
+  footer .gold { color: var(--gold); }
+
+  .empty { padding: 64px; text-align: center; color: var(--text-dim); grid-column: 1 / -1; }
+  .empty .em { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--gold); margin-bottom: 8px; }
+
+  @media (max-width: 700px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .grid { grid-template-columns: 1fr; padding: 8px 16px 32px; }
+    header { padding: 16px; }
+    .filter-row { padding: 12px 16px; }
+    .standing { margin: 16px; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">EJ</div>
+    <div class="brand-text">
+      <div class="name">EJonesLoans</div>
+      <div class="sub">Content Board · Self-Shoot</div>
+    </div>
+  </div>
+  <div class="controls">
+    <input class="search" id="search" placeholder="Search hooks, scripts, CTAs…" />
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="num" id="stat-total">15</div><div class="lbl">Total Videos</div></div>
+  <div class="stat"><div class="num" id="stat-auth">8</div><div class="lbl">Serious / Expert</div></div>
+  <div class="stat"><div class="num" id="stat-kitchen">3</div><div class="lbl">Kitchen / Hyped</div></div>
+  <div class="stat"><div class="num" id="stat-peer">3</div><div class="lbl">Casual / Peer</div></div>
+</div>
+
+<div class="filter-row">
+  <span class="filter-label">Tonality</span>
+  <span class="chip active" data-filter="cluster" data-val="all">All</span>
+  <span class="chip cluster-authority" data-filter="cluster" data-val="authority">🔒 Serious / Expert</span>
+  <span class="chip cluster-kitchen"   data-filter="cluster" data-val="kitchen">🔥 Kitchen / Hyped</span>
+  <span class="chip cluster-peer"      data-filter="cluster" data-val="peer">🤝 Casual / Peer</span>
+  <span class="chip cluster-screen"    data-filter="cluster" data-val="screen">🖥 Screen Recording</span>
+</div>
+
+<div class="filter-row">
+  <span class="filter-label">Pillar</span>
+  <span class="chip active" data-filter="pillar" data-val="all">All</span>
+  <span class="chip" data-filter="pillar" data-val="Education">Education</span>
+  <span class="chip" data-filter="pillar" data-val="Myth Bust">Myth Bust</span>
+  <span class="chip" data-filter="pillar" data-val="Deal Breakdown">Deal Breakdown</span>
+  <span class="chip" data-filter="pillar" data-val="Client Win">Client Win</span>
+  <span class="chip" data-filter="pillar" data-val="Market Intel">Market Intel</span>
+</div>
+
+<div class="standing">
+  <h3>Standing Setup — applies to every card unless overridden</h3>
+  <div class="standing-grid">
+    <div class="item"><div class="k">How to Frame Yourself</div><div class="v">Hold the phone vertical (TikTok style). Camera at chest height, arm's length away. Show your face down to the top of your shirt. Look right into the camera lens — not at your own face on the screen.</div></div>
+    <div class="item"><div class="k">Lighting</div><div class="v">Stand facing a window (best look) OR put a ring light right behind the phone, eye-level. You should see a small bright reflection in your eyes — that's what makes you look sharp on camera.</div></div>
+    <div class="item"><div class="k">Background</div><div class="v">Pick a clean spot — home office, plain wall, or kitchen counter. Nothing moving behind you. One small brand item is fine (a lamp, a mug, a framed photo).</div></div>
+    <div class="item"><div class="k">Sound</div><div class="v">Use a clip-on mic if you have one. Otherwise stay within 3 feet of the phone in a quiet room. Only add trending music on the "Kitchen Confessional" cards (orange) — never on the others.</div></div>
+    <div class="item"><div class="k">How to Deliver</div><div class="v">Skip the "hey guys" — start with the hook line right away. Stick to one idea per video. Always end with the CTA on screen and out loud.</div></div>
+    <div class="item"><div class="k">How Often to Shoot</div><div class="v">Shoot 5 cards Monday morning. That's a full week of posts. Aim to keep 30 cards ready at all times so you're never scrambling.</div></div>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="workflow">
+  <h3>Shoot-Day Workflow</h3>
+  <div class="workflow-grid">
+    <div class="workflow-step">
+      <div class="num">Step 01 — Sunday Night</div>
+      <div class="ttl">Pick 5 cards</div>
+      <div class="desc">Mix it up — grab at least one gold (serious), one orange (kitchen energy), and one teal (casual/peer). Read the script out loud 3 times. Memorize the first line and the CTA word-for-word. The middle you can say in your own words.</div>
+    </div>
+    <div class="workflow-step">
+      <div class="num">Step 02 — Monday Morning</div>
+      <div class="ttl">Set up your spot once</div>
+      <div class="desc">Get your lighting and phone position right before you start. Don't change it between videos. Film the serious ones first (you're sharpest), kitchen ones second, casual/walking ones last.</div>
+    </div>
+    <div class="workflow-step">
+      <div class="num">Step 03 — Monday Morning</div>
+      <div class="ttl">2 tries max per video</div>
+      <div class="desc">Your first take is almost always the best. Don't keep redoing it. A real, slightly-imperfect take beats a polished 4th attempt every time.</div>
+    </div>
+    <div class="workflow-step">
+      <div class="num">Step 04 — Send to CB</div>
+      <div class="ttl">AirDrop the clips</div>
+      <div class="desc">Drop the raw videos in the shared folder. CB handles the rest — adding the brand graphics, captions, hashtags, and scheduling everything to post on Instagram, TikTok, and LinkedIn.</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  EJONESLOANS · CONTENT BOARD · <span class="gold">CODEDBYCB</span> · Built from Scraper 1-EJL · 28 hooks · 5 winning creators · 4 tonality clusters
+</footer>
+
+<script>
+const cards = [
+  {id:"EJL-001", cluster:"authority", clusterLabel:"Serious / Expert", pillar:"Education", source:"@iamandrewrussell — income-paradox",
+   hook:"Your CPA says you made $40K last year. Your bank statements say $150K. Banks see a problem. I see an approval.",
+   script:"Your CPA says you made $40K last year. Your bank statements say $150K. Banks see a problem. I see an approval.\n\nConventional lenders underwrite the tax return. We underwrite the deposits.\n\n12 months of bank statements — personal or business — and we calculate the real income.\n\nNo W-2. No K-1 gymnastics. The money you actually move is the money we use.\n\nIf you've been writing yourself out of a mortgage every April, DM me 'FUND.'",
+   camera:"Standard chest-up shot. Tilt the phone down just a little so it feels like you're talking down to the viewer (more authority).",
+   lighting:"Window to your left. No extra lights. A little shadow on the right side of your face is what you want.",
+   tonality:"Talk slow. Drop your voice quieter on 'I see an approval.' Lock eyes with the camera. Don't move your hands until you say '12 months of bank statements.'",
+   ctaText:"DM the keyword to talk through your scenario", ctaKey:"FUND"},
+
+  {id:"EJL-002", cluster:"kitchen", clusterLabel:"Kitchen / Hyped", pillar:"Myth Bust", source:"@thatmortgageguy — zero-down",
+   hook:"Nobody told me investors can close on a rental with $0 of their own money. Watch this.",
+   script:"Nobody told me investors can close on a rental with $0 of their own money. Watch this.\n\nStep one — find a property that cash-flows above 1.2 DSCR.\nStep two — bring a private money lender in for 100% of purchase plus rehab.\nStep three — refinance into a DSCR loan once it seasons. Pull your money back out.\n\nYou just bought a rental for zero out of pocket. This is BRRRR with the actual financing stack.\n\nComment 'BRRRR' and I'll send the lender checklist.",
+   camera:"Stand in the kitchen, prop the phone on the counter or coffee maker. Doesn't have to be perfectly centered.",
+   lighting:"Whatever's already in your kitchen — overhead light + window is fine. Don't overthink it.",
+   tonality:"Talk fast, like you're excited and just figured something out. Add a trending TikTok sound underneath at low volume.",
+   ctaText:"Comment for the lender checklist", ctaKey:"BRRRR"},
+
+  {id:"EJL-003", cluster:"authority", clusterLabel:"Serious / Expert", pillar:"Education", source:"EJL signature",
+   hook:"Banks underwrite the borrower. I underwrite the deal. That's the entire difference.",
+   script:"Banks underwrite the borrower. I underwrite the deal. That's the entire difference.\n\nBanks ask: what's your DTI, what's your job history, what's your tax return.\nI ask: what does the property cash flow, what's the LTV, what's the exit.\n\nA 4-unit doing $4,200/mo with a $2,800 PITI? That's a 1.5 DSCR. The deal qualifies — and so do you.\n\nStop sending banks your tax returns. Start sending me your rent rolls.\n\nDM 'DSCR' for a 60-second pre-qual.",
+   camera:"Standard chest-up shot, you in the middle of the frame.",
+   lighting:"Ring light right behind the phone at eye-level. You should see the light reflecting in your eyes.",
+   tonality:"Talk slow. Pause for a second between each number you say. Keep your hands still — no gestures.",
+   ctaText:"DM for a 60-second pre-qual", ctaKey:"DSCR"},
+
+  {id:"EJL-004", cluster:"peer", clusterLabel:"Casual / Peer", pillar:"Deal Breakdown", source:"@investarters — triplex walkthrough",
+   hook:"Here's exactly how my client just bought a $310K triplex out of state with zero proof of income.",
+   script:"Here's exactly how my client just bought a $310K triplex out of state with zero proof of income.\n\nProperty: triplex, $310K, rents totaling $4,100/mo.\nPITI at 7.625%, 25% down: $2,650.\nDSCR: 1.54. Comfortable.\n\nNo tax returns. No employer call. No DTI math. 21-day close. He's never even seen the building in person.\n\nThe property qualifies. Not your tax returns.\n\nDM 'TRIPLEX' if you want to see the full numbers.",
+   camera:"In the car, phone mounted on the dash. Sunglasses if you want. Doesn't need to be straight-on.",
+   lighting:"Outside daylight only. Shoot before 11am or after 4pm so the sun isn't harsh.",
+   tonality:"Talk like you're telling a buddy in the passenger seat. Excited but not yelling.",
+   ctaText:"DM for the full numbers", ctaKey:"TRIPLEX"},
+
+  {id:"EJL-005", cluster:"authority", clusterLabel:"Serious / Expert", pillar:"Myth Bust", source:"20% down myth",
+   hook:"The 'you need 20% down' myth has cost investors millions. Here's the math.",
+   script:"The '20% down' myth has cost investors millions. Here's the math.\n\nA $300K rental at 20% down — you're $60K in.\nSame property, hard money at 90% LTC, refi to DSCR after seasoning — you're $15K in.\n\nSame rental. Same cash flow. Four times the leverage.\n\nThe investor with $60K just did one deal. The investor with $15K did four. In five years, who's wealthier? Not even close.\n\nDM 'LEVERAGE' and I'll show you the stack.",
+   camera:"Standard chest-up. Tilt the phone down a little.",
+   lighting:"Make it darker than usual. One window with the blinds half-closed. You want a moody vibe.",
+   tonality:"Talk like a teacher who's tired of explaining the same thing. Calm but a little frustrated.",
+   ctaText:"DM for the leverage stack", ctaKey:"LEVERAGE"},
+
+  {id:"EJL-006", cluster:"screen", clusterLabel:"Screen Recording", pillar:"Market Intel", source:"@whatsamortgage_ — rate spread",
+   hook:"Three lenders. Same investor. Same property. Watch the rate spread.",
+   script:"Three lenders. Same investor. Same property. Watch the rate spread.\n\n[Screen: side-by-side quotes]\nLender A — bank route: 8.125%, 3 points, 45-day close.\nLender B — non-QM retail: 7.875%, 2 points, 30-day close.\nLender C — me, broker access to 40+ DSCR products: 7.25%, 1 point, 18-day close.\n\nSame borrower. Same property. The lender you pick is worth more than the property you pick.\n\nDM 'QUOTE' and I'll run yours against three lenders by tomorrow.",
+   camera:"Record your screen with the rate quotes pulled up. Put a small video of your face in the top-right corner.",
+   lighting:"Whatever's on your desk normally — keep it the same every time you film a screen-style video.",
+   tonality:"Talk like a lawyer presenting evidence. Sharp, direct, no smiling.",
+   ctaText:"DM for a 3-lender comparison", ctaKey:"QUOTE"},
+
+  {id:"EJL-007", cluster:"authority", clusterLabel:"Serious / Expert", pillar:"Education", source:"@iamandrewrussell — 1099",
+   hook:"If a bank told you your 1099 income doesn't qualify, they didn't read their own guidelines.",
+   script:"If a bank told you your 1099 income doesn't qualify, they didn't read their own guidelines.\n\n1099 income is self-employed income. 24 months of 1099s plus a profit-and-loss statement — that's a qualifying file.\n\nNo W-2 required. No partnership return required. No K-1 required.\n\nBanks reject because their underwriters don't want the work. I take the work.\n\nIf you've been told 'no' on 1099 income, send me the denial letter. DM '1099.'",
+   camera:"Standard chest-up, you in the middle of the frame.",
+   lighting:"Bright and clean. Ring light right behind the phone.",
+   tonality:"Sound a little fired up — but on the viewer's side, like you're sticking up for them.",
+   ctaText:"DM with the denial letter", ctaKey:"1099"},
+
+  {id:"EJL-008", cluster:"kitchen", clusterLabel:"Kitchen / Hyped", pillar:"Myth Bust", source:"@themortgagepug — 'be greedy'",
+   hook:"Every investor I funded in 2023 is up double-digits right now. Every one who waited is still waiting.",
+   script:"Every investor I funded in 2023 is up double-digits right now. Every one who waited is still waiting.\n\nBe greedy when others are fearful — Buffett said it, real estate investors live it.\n\nRates are not staying here forever. Inventory is not staying here forever. Sellers are negotiable RIGHT NOW.\n\nBy the time the news says 'great time to buy,' the deals are already gone.\n\nIf you're sitting on capital and waiting for a sign — this is the sign. DM 'READY.'",
+   camera:"Hold the phone in your hand in the kitchen. A little shaky/handheld is fine — actually better.",
+   lighting:"Whatever the room already has. Don't adjust anything.",
+   tonality:"Loudest, most fired-up of all the cards. Like you're hyping someone up. Add a trending TikTok sound.",
+   ctaText:"DM to run numbers this week", ctaKey:"READY"},
+
+  {id:"EJL-009", cluster:"authority", clusterLabel:"Serious / Expert", pillar:"Education", source:"EJL signature — property qualifies",
+   hook:"The property qualifies. Not your tax returns. Let me prove it in 25 seconds.",
+   script:"The property qualifies. Not your tax returns. Let me prove it in 25 seconds.\n\nDSCR loan formula: monthly rent divided by monthly PITI.\n\nAbove 1.0 — the property pays for itself.\nAbove 1.2 — best pricing tier.\nAbove 1.5 — pick your lender.\n\nNo income docs. No tax returns. No job-history letter. Property cash flow is the entire underwrite.\n\nIf you can read a rent roll, you can qualify for a DSCR loan. DM 'DSCR' — I'll run yours in under an hour.",
+   camera:"Standard chest-up. Phone on a tripod or propped — don't hold it. No movement.",
+   lighting:"Stand facing a window on your left. Make sure the window light shows in your eyes.",
+   tonality:"Teacher voice. Pause after each ratio (1.0, 1.2, 1.5) so it sinks in.",
+   ctaText:"DM for an under-1-hour quote", ctaKey:"DSCR"},
+
+  {id:"EJL-010", cluster:"peer", clusterLabel:"Casual / Peer", pillar:"Client Win", source:"3 banks said no, 12 days",
+   hook:"Three banks said no. We funded in 12 days. Here's what changed.",
+   script:"Three banks told this client no. We funded the deal in 12 days. Here's what changed.\n\n$185K duplex in Cleveland. Investor had two rentals already, strong cash position, banks still said no — too many financed properties.\n\nI moved him to a portfolio lender. One file, no property cap.\n\nSame investor. Same property. Different lender. Yes instead of no. The deal didn't change. The door did.\n\nIf a bank told you you're tapped out, you're not. DM 'PORTFOLIO.'",
+   camera:"Either in the car or at your office. Sit relaxed, don't be stiff.",
+   lighting:"Outside daylight or soft indoor light. Whatever's natural.",
+   tonality:"Talk like you're catching up with a friend over coffee. Confident, but not bragging.",
+   ctaText:"DM if a bank capped you out", ctaKey:"PORTFOLIO"},
+
+  {id:"EJL-011", cluster:"authority", clusterLabel:"Serious / Expert", pillar:"Myth Bust", source:"DSCR vs DTI scaling",
+   hook:"If you're still using DTI to qualify for investment property, you're capping your portfolio at four doors.",
+   script:"If you're still using DTI to qualify for investment property, you're capping your portfolio at four doors. Here's why.\n\nConventional Fannie financing has a hard cap — 10 financed properties, max. After 4, terms get ugly.\n\nDSCR has no cap. Zero. I have clients with 30+ doors on DSCR loans.\n\nThe math doesn't change at door 5, or door 15, or door 30.\n\nIf you're serious about scale, DTI is the wrong tool for the job. DM 'SCALE' and let's plan past 10 doors.",
+   camera:"Standard chest-up. Lean a little closer to the camera when you say 'no cap, zero.'",
+   lighting:"Bright. Ring light right behind the phone.",
+   tonality:"Calm and sure of yourself. Like you're warning them about a wall they're about to run into.",
+   ctaText:"DM to plan past 10 doors", ctaKey:"SCALE"},
+
+  {id:"EJL-012", cluster:"kitchen", clusterLabel:"Kitchen / Hyped", pillar:"Education", source:"Hidden costs / nobody told me",
+   hook:"Nobody told me about prepayment penalties on DSCR loans. Then it cost a client $14K.",
+   script:"Nobody told me about prepayment penalties on DSCR loans. Then a client of mine got hit for $14K. Don't be him.\n\nMost DSCR loans have a 3- or 5-year prepay. Sell or refi early, you owe a chunk of the original loan.\n\n5/4/3/2/1 step-down structure is standard.\n\nIf you're flipping or refinancing inside 24 months, ASK FOR THE PREPAY WAIVER.\n\nSome lenders allow it for a slightly higher rate. Worth every penny. DM 'PREPAY' for the waiver shortlist.",
+   camera:"In the kitchen, a little closer to the phone than usual. Phone propped — don't hold it.",
+   lighting:"Whatever your kitchen lighting is. Don't change it.",
+   tonality:"Like a friend warning you so it doesn't happen to you. Get a little louder on '$14K.' Stay warm.",
+   ctaText:"DM for the waiver shortlist", ctaKey:"PREPAY"},
+
+  {id:"EJL-013", cluster:"authority", clusterLabel:"Serious / Expert", pillar:"Education", source:"Foreign-national niche (Ettedgui style)",
+   hook:"You don't need a green card to buy U.S. rental property. You need the right lender.",
+   script:"You don't need a green card to buy U.S. rental property. You need the right lender.\n\nForeign-national DSCR programs exist. No SSN, no U.S. tax return, no U.S. credit history required.\n\nWhat you DO need: U.S. LLC, U.S. business bank account, 30% down, an ITIN or passport ID.\n\nRates are 1–1.5% above standard DSCR. Worth it for the access.\n\nIf you're an investor abroad and U.S. real estate looks like a deal — it is. We can fund you. DM 'GLOBAL' for the foreign-national program list.",
+   camera:"Standard chest-up. This one is the most professional — sit up straight.",
+   lighting:"Clean, even lighting. Don't make it dark or moody.",
+   tonality:"Talk like a calm professional. This audience is sophisticated — skip the jokes.",
+   ctaText:"DM for the program list", ctaKey:"GLOBAL"},
+
+  {id:"EJL-014", cluster:"peer", clusterLabel:"Casual / Peer", pillar:"Market Intel", source:"Don't wait on rates",
+   hook:"Every investor waiting for rates to drop is going to lose to the investor buying at 7.5%.",
+   script:"Every investor waiting for rates to drop is going to lose to the investor buying at 7.5%. Here's why.\n\nWhen rates drop, prices spike. Every basis point of rate relief costs you in the purchase price.\n\nThe investor buying NOW at 7.5% is buying at a discount. When rates hit 6%, that same investor refinances. Cash flow goes UP. Equity went UP twice — once on the discount, once on the refi.\n\nThe waiter buys later at full price and a 6% rate. Same monthly. Half the equity.\n\nDate the rate. Marry the property. DM 'BUY.'",
+   camera:"Walking outside with the phone in your hand at arm's length, OR sitting in the car. Movement is good.",
+   lighting:"Shoot outside if you can. Best around sunrise or sunset (golden hour).",
+   tonality:"High energy, like a buddy who's all-in on a play. Talk fast but clear. Sound like you really believe it.",
+   ctaText:"DM to run a deal this week", ctaKey:"BUY"},
+
+  {id:"EJL-015", cluster:"authority", clusterLabel:"Serious / Expert", pillar:"Client Win", source:"Bank 47 days, EJL 14 days",
+   hook:"Wells Fargo took 47 days to tell my client no. I funded the same deal in 14.",
+   script:"Wells Fargo took 47 days to tell my client no. I funded the same deal in 14.\n\n$420K mixed-use. 1.32 DSCR. 740 credit. Strong file.\n\nWells: 'too complex, mixed-use exposure.'\nMe: 'standard mixed-use DSCR product, 18-day close.'\n\nSame borrower. Same property. Same numbers. The bank wasn't built for this. I was.\n\nIf a bank has been sitting on your file for 30+ days, you already have your answer. DM 'CLOSE.'",
+   camera:"Standard chest-up. Phone propped, no shaking.",
+   lighting:"Window light from your left. Keep it serious-looking.",
+   tonality:"A little smirk is fine — you're proving the bank wrong and you know it.",
+   ctaText:"DM if a bank's been sitting on your file", ctaKey:"CLOSE"},
+];
+
+const grid = document.getElementById("grid");
+const search = document.getElementById("search");
+let filters = { cluster: "all", pillar: "all", q: "" };
+
+function render() {
+  grid.innerHTML = "";
+  const q = filters.q.toLowerCase();
+  const visible = cards.filter(c => {
+    if (filters.cluster !== "all" && c.cluster !== filters.cluster) return false;
+    if (filters.pillar !== "all" && c.pillar !== filters.pillar) return false;
+    if (q) {
+      const blob = (c.id + c.hook + c.script + c.ctaText + c.ctaKey + c.source + c.pillar).toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (visible.length === 0) {
+    grid.innerHTML = `<div class="empty"><div class="em">No cards match.</div>Try clearing a filter or searching differently.</div>`;
+    return;
+  }
+
+  visible.forEach(c => {
+    const el = document.createElement("article");
+    el.className = "card";
+    el.dataset.cluster = c.cluster;
+    el.innerHTML = `
+      <div class="card-stripe"></div>
+      <div class="card-head">
+        <div>
+          <div class="card-id">${c.id}</div>
+          <div class="card-pillar">${c.pillar} · ${c.source}</div>
+        </div>
+        <div class="cluster-badge">${c.clusterLabel}</div>
+      </div>
+      <div class="hook">
+        <div class="hook-tag">Hook · 0:00–0:03</div>
+        <div class="hook-text">"${c.hook}"</div>
+      </div>
+      <div class="card-body">
+        <div class="meta-row">
+          <div class="meta"><div class="k">Camera Setup</div><div class="v">${c.camera}</div></div>
+          <div class="meta"><div class="k">Lighting</div><div class="v">${c.lighting}</div></div>
+        </div>
+        <div class="meta"><div class="k">How to Talk</div><div class="v">${c.tonality}</div></div>
+        <div class="script-block">
+          <div class="k">Script · ≤30s</div>
+          <div class="v">${c.script}</div>
+        </div>
+      </div>
+      <div class="cta-bar">
+        <div class="cta-text">${c.ctaText}</div>
+        <div class="cta-keyword">${c.ctaKey}</div>
+      </div>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+document.querySelectorAll(".chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const filter = chip.dataset.filter;
+    const val = chip.dataset.val;
+    document.querySelectorAll(`.chip[data-filter="${filter}"]`).forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    filters[filter] = val;
+    render();
+  });
+});
+
+search.addEventListener("input", e => {
+  filters.q = e.target.value;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
